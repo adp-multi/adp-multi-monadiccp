@@ -1,5 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-
 Use this set of combinators instead of ADP.Multi.Combinators to
@@ -7,25 +8,12 @@ use a constraint solver for constructing the indices ranges.
 
 Note: This is experimental and slow.
 -} 
-module ADP.Multi.CombinatorsConstraint (
-    (<<<),
-    (~~~),
-    yieldSize1, yieldSize2,
-    (>>>),
-    (|||),
-    (...),
-    with
-) where
+module ADP.Multi.Constraint.Combinators where
 
-import ADP.Multi.Parser
-import ADP.Multi.Rewriting
-import ADP.Multi.Combinators hiding ((>>>))
+import ADP.Multi.Combinators
 import ADP.Multi.Rewriting.YieldSize
-import ADP.Multi.Rewriting.ConstraintSolver
-
-class Rewritable r a b where
-    infix 6 >>>
-    (>>>) :: ([ParserInfo], [Ranges] -> Parser a b) -> r -> RichParser a b
+import ADP.Multi.Rewriting.Model
+import ADP.Multi.Constraint.ConstraintSolver
 
 instance Rewritable Dim1 a b where
     (>>>) (infos,p) f = 

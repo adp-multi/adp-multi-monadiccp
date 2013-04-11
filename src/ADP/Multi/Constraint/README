@@ -1,0 +1,4 @@
+This is an alternative to the ADP.Multi.Rewrite.* modules
+in adp-multi. It uses the same model (ADP.Multi.Rewrite.Model)
+for rewriting functions, but implements a different subword
+construction algorithm using a constraint solver.

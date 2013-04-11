@@ -2,7 +2,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module ADP.Multi.Rewriting.MonadicCpHelper (
+module ADP.Multi.Constraint.MonadicCpHelper (
         FDModel
       , solveModel
 ) where
