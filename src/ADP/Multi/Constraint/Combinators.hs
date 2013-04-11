@@ -2,9 +2,9 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-{-
-Use this set of combinators instead of ADP.Multi.Combinators to
-use a constraint solver for constructing the indices ranges.
+{- |
+Use this set of combinators instead of ADP.Multi.Rewriting.Combinators to
+use a constraint solver for constructing the subword ranges.
 
 Note: This is experimental and slow.
 -} 

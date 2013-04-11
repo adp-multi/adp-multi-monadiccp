@@ -19,8 +19,8 @@ description:
                 programming framework monadiccp with the constraint solver
                 OvertonFD. It is slower than the built-in algorithm in
                 adp-multi and serves research purposes.
-                Use it by importing ADP.Multi.Constraint.Combinators instead
-                of ADP.Multi.Rewriting.Combinators in your grammar files.
+                Use it by importing ADP.Multi.Constraint.All instead
+                of ADP.Multi.Rewriting.All in your grammar files.
 
 source-repository head
   type:      git
@@ -28,12 +28,13 @@ source-repository head
 
 library
   hs-source-dirs:  src
-  build-depends:   base >= 4,
+  build-depends:   base == 4.*,
                    containers >= 0.4 && < 0.6,
                    adp-multi == 0.2.*,
                    monadiccp == 0.7.*
   ghc-options:     -Wall
-  exposed-modules: ADP.Multi.Constraint.Combinators
-  other-modules:   
-                   ADP.Multi.Constraint.ConstraintSolver,
-                   ADP.Multi.Constraint.MonadicCpHelper
+  exposed-modules: 
+                   ADP.Multi.Constraint.All,
+                   ADP.Multi.Constraint.Combinators,
+                   ADP.Multi.Constraint.ConstraintSolver
+  other-modules:   ADP.Multi.Constraint.MonadicCpHelper
