@@ -12,8 +12,8 @@ TODO It is slow as hell. Maybe it is possible to "compile" the two inequality
      see http://www.cs.washington.edu/research/constraints/solvers/cp97.html
 -}
 module ADP.Multi.Constraint.ConstraintSolver (
-        constructRanges1,
-        constructRanges2
+        constructSubwords1,
+        constructSubwords2
 ) where
 
 import Control.Exception 
@@ -30,61 +30,67 @@ import ADP.Multi.Constraint.MonadicCpHelper
 import Control.CP.FD.Interface
 
 
-constructRanges1 :: SubwordConstructionAlgorithm Dim1
-constructRanges1 _ _ b | trace ("constructRanges1 " ++ show b) False = undefined
-constructRanges1 f infos [i,j] =
+constructSubwords1 :: SubwordConstructionAlgorithm Dim1
+constructSubwords1 _ _ b | trace ("constructSubwords1 " ++ show b) False = undefined
+constructSubwords1 f infos [i,j] =
         assert (i <= j) $
-        let parserCount = length infos            
-            elemInfo = buildInfoMap infos
-            rewritten = f (Map.keys elemInfo)
-            remainingSymbols = [parserCount,parserCount-1..1] `zip` infos
+        let yieldSizeMap = buildYieldSizeMap infos
+            symbolIDs = Map.keys yieldSizeMap
+            rewritten = f symbolIDs
+            parserCount = length infos
+            remainingParsers = [parserCount,parserCount-1..1] `zip` infos
             rangeDesc = [(i,j,rewritten)]
             rangeDescFiltered = filterEmptyRanges rangeDesc
-        in trace (show remainingSymbols) $
+        in trace ("f " ++ show symbolIDs ++ " = " ++ show rewritten) $
+           assert (length rewritten == Map.size yieldSizeMap && all (`elem` rewritten) symbolIDs) $
            if any (\(m,n,d) -> null d && m /= n) rangeDesc then []
-           else constructRangesRec elemInfo remainingSymbols rangeDescFiltered
+           else constructSubwordsRec yieldSizeMap remainingParsers rangeDescFiltered
 
-constructRanges2 :: SubwordConstructionAlgorithm Dim2
-constructRanges2 _ _ b | trace ("constructRanges2 " ++ show b) False = undefined
-constructRanges2 f infos [i,j,k,l] =
+constructSubwords2 :: SubwordConstructionAlgorithm Dim2
+constructSubwords2 _ _ b | trace ("constructSubwords2 " ++ show b) False = undefined
+constructSubwords2 f infos [i,j,k,l] =
         assert (i <= j && j <= k && k <= l) $
-        let parserCount = length infos
-            elemInfo = buildInfoMap infos
-            (left,right) = f (Map.keys elemInfo)
-            remainingSymbols = [parserCount,parserCount-1..1] `zip` infos
+        let yieldSizeMap = buildYieldSizeMap infos
+            symbolIDs = Map.keys yieldSizeMap
+            (left,right) = f symbolIDs
+            parserCount = length infos
+            remainingParsers = [parserCount,parserCount-1..1] `zip` infos
             rangeDesc = [(i,j,left),(k,l,right)]
             rangeDescFiltered = filterEmptyRanges rangeDesc
-        in if any (\(m,n,d) -> null d && m /= n) rangeDesc then []
-           else constructRangesRec elemInfo remainingSymbols rangeDescFiltered
+        in trace ("f " ++ show symbolIDs ++ " = (" ++ show left ++ "," ++ show right ++ ")") $
+           assert (length left + length right == Map.size yieldSizeMap && all (`elem` (left ++ right)) symbolIDs) $
+           if any (\(m,n,d) -> null d && m /= n) rangeDesc then []
+           else constructSubwordsRec yieldSizeMap remainingParsers rangeDescFiltered
 
 
-constructRangesRec :: InfoMap -> [(Int,ParserInfo)] -> [RangeDesc] -> [SubwordTree]
-constructRangesRec a b c | trace ("constructRangesRec " ++ show a ++ " " ++ show b ++ " " ++ show c) False = undefined
-constructRangesRec _ [] [] = []
-constructRangesRec infoMap ((current,ParserInfo2 {}):rest) rangeDescs =
-        let symbolLoc = findSymbol2 current rangeDescs
-            subwords = calcSubwords2 infoMap symbolLoc
-        in trace ("calc subwords for dim2") $
-           trace ("subwords: " ++ show subwords) $
-           [ SubwordTree [i,j,k,l] restRanges |
-             (i,j,k,l) <- subwords,
-             let newDescs = constructNewRangeDescs2 rangeDescs symbolLoc (i,j,k,l),
-             let restRanges = constructRangesRec infoMap rest newDescs
-           ]
-constructRangesRec infoMap ((current,ParserInfo1 {}):rest) rangeDescs =
+
+constructSubwordsRec :: YieldSizeMap -> [(Int,ParserInfo)] -> [RangeDesc] -> [SubwordTree]
+constructSubwordsRec a b c | trace ("constructRangesRec " ++ show a ++ " " ++ show b ++ " " ++ show c) False = undefined
+constructSubwordsRec _ [] [] = []
+constructSubwordsRec yieldSizeMap ((current,ParserInfo1 {}):rest) rangeDescs =
         let symbolLoc = findSymbol1 current rangeDescs
-            subwords = calcSubwords1 infoMap symbolLoc
+            subwords = calcSubwords1 yieldSizeMap symbolLoc
         in trace ("calc subwords for dim1") $
            trace ("subwords: " ++ show subwords) $
-           [ SubwordTree [i,j] restRanges |
+           [ SubwordTree [i,j] restTrees |
              (i,j) <- subwords,
              let newDescs = constructNewRangeDescs1 rangeDescs symbolLoc (i,j),
-             let restRanges = constructRangesRec infoMap rest newDescs
+             let restTrees = constructSubwordsRec yieldSizeMap rest newDescs
            ]
-constructRangesRec _ [] r@(_:_) = error ("programming error " ++ show r)
+constructSubwordsRec yieldSizeMap ((current,ParserInfo2 {}):rest) rangeDescs =
+        let symbolLocs = findSymbol2 current rangeDescs
+            subwords = calcSubwords2 yieldSizeMap symbolLocs
+        in trace ("calc subwords for dim2") $
+           trace ("subwords: " ++ show subwords) $
+           [ SubwordTree [i,j,k,l] restTrees |
+             (i,j,k,l) <- subwords,
+             let newDescs = constructNewRangeDescs2 rangeDescs symbolLocs (i,j,k,l),
+             let restTrees = constructSubwordsRec yieldSizeMap rest newDescs
+           ]
+constructSubwordsRec _ [] r@(_:_) = error ("programming error " ++ show r)
 
 
-calcSubwords2 :: InfoMap -> ((RangeDesc,Int),(RangeDesc,Int)) -> [Subword2]
+calcSubwords2 :: YieldSizeMap -> ((RangeDesc,Int),(RangeDesc,Int)) -> [Subword2]
 calcSubwords2 a b | trace ("calcSubwords " ++ show a ++ " " ++ show b) False = undefined
 calcSubwords2 infoMap (left@((i,j,r),a1Idx),right@((_,_,r'),a2Idx))
   | r == r' = calcSubwords2Dependent infoMap (i,j,r) a1Idx a2Idx
@@ -94,12 +100,12 @@ calcSubwords2 infoMap (left@((i,j,r),a1Idx),right@((_,_,r'),a2Idx))
                 ]
 
 -- assumes that other component is in a different part
-calcSubwords1 :: InfoMap -> (RangeDesc,Int) -> [Subword1]
+calcSubwords1 :: YieldSizeMap -> (RangeDesc,Int) -> [Subword1]
 calcSubwords1 _ b | trace ("calcSubwordsIndependent " ++ show b) False = undefined
 calcSubwords1 infoMap pos@((i,j,_),_) =
-        let (minY,maxY) = infoFromPos infoMap pos
-            (minYLeft,maxYLeft) = combinedInfoLeftOf infoMap pos
-            (minYRight,maxYRight) = combinedInfoRightOf infoMap pos
+        let (minY,maxY) = yieldSizeOf infoMap pos
+            (minYLeft,maxYLeft) = combinedYieldSizeLeftOf infoMap pos
+            (minYRight,maxYRight) = combinedYieldSizeRightOf infoMap pos
             model :: FDModel
             model = exists $ \col -> do
                   let rangeLen = fromIntegral (j-i)
@@ -122,7 +128,7 @@ calcSubwords1 infoMap pos@((i,j,_),_) =
         in map (\[len1,_,len3] -> (i+len1, j-len3)) $ solveModel model
 
 
-calcSubwords2Dependent :: InfoMap -> RangeDesc -> Int -> Int -> [Subword2]
+calcSubwords2Dependent :: YieldSizeMap -> RangeDesc -> Int -> Int -> [Subword2]
 calcSubwords2Dependent _ b c d | trace ("calcSubwordsDependent " ++ show b ++ " " ++ show c ++ " " ++ show d) False = undefined
 calcSubwords2Dependent infoMap desc a1Idx a2Idx =
         let a1Idx' = if a1Idx < a2Idx then a1Idx else a2Idx
@@ -131,13 +137,13 @@ calcSubwords2Dependent infoMap desc a1Idx a2Idx =
         in if a1Idx < a2Idx then subs
            else [ (k,l,m,n) | (m,n,k,l) <- subs ]
 
-doCalcSubwords2Dependent :: InfoMap -> RangeDesc -> Int -> Int -> [Subword2]
+doCalcSubwords2Dependent :: YieldSizeMap -> RangeDesc -> Int -> Int -> [Subword2]
 doCalcSubwords2Dependent infoMap desc@(i,j,_) a1Idx a2Idx =
-        let (minY1,maxY1) = infoFromPos infoMap (desc,a1Idx)
-            (minY2,maxY2) = infoFromPos infoMap (desc,a2Idx)
-            (minYLeft1,maxYLeft1) = combinedInfoLeftOf infoMap (desc,a1Idx)
-            (minYRight1,maxYRight1) = combinedInfoRightOf infoMap (desc,a1Idx)
-            (minYRight2,maxYRight2) = combinedInfoRightOf infoMap (desc,a2Idx)
+        let (minY1,maxY1) = yieldSizeOf infoMap (desc,a1Idx)
+            (minY2,maxY2) = yieldSizeOf infoMap (desc,a2Idx)
+            (minYLeft1,maxYLeft1) = combinedYieldSizeLeftOf infoMap (desc,a1Idx)
+            (minYRight1,maxYRight1) = combinedYieldSizeRightOf infoMap (desc,a1Idx)
+            (minYRight2,maxYRight2) = combinedYieldSizeRightOf infoMap (desc,a2Idx)
             minYBetween = minYRight1 - minYRight2 - minY2
             maxYBetween | a1Idx + 1 == a2Idx = Just 0
                         | isNothing maxYRight1 = Nothing
