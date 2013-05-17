@@ -27,14 +27,42 @@ source-repository head
   location:  git://github.com/neothemachine/adp-multi-monadiccp.git
 
 library
-  hs-source-dirs:  src
-  build-depends:   base == 4.*,
+  hs-source-dirs:   src
+  build-depends:    
+                   base == 4.*,
                    containers >= 0.4 && < 0.6,
                    adp-multi == 0.2.*,
                    monadiccp == 0.7.*
-  ghc-options:     -Wall
-  exposed-modules: 
+  ghc-options:      -Wall
+  exposed-modules:  
                    ADP.Multi.Constraint.All,
                    ADP.Multi.Constraint.Combinators,
                    ADP.Multi.Constraint.ConstraintSolver
-  other-modules:   ADP.Multi.Constraint.MonadicCpHelper
+  other-modules:    ADP.Multi.Constraint.MonadicCpHelper
+
+test-suite Test
+  type:            exitcode-stdio-1.0
+  x-uses-tf:       true
+  ghc-options:     -Wall -rtsopts
+  build-depends:   
+                   base == 4.*,
+                   containers >= 0.4 && < 0.6,
+                   adp-multi == 0.2.*,
+                   monadiccp == 0.7.*,
+                   HUnit == 1.2.*,
+                   QuickCheck == 2.5.*,
+                   test-framework == 0.8.*,
+                   test-framework-quickcheck2 == 0.3.*,
+                   test-framework-hunit == 0.3.*,
+                   random-shuffle == 0.0.4,
+                   mtl >= 2.0 && < 2.2
+  hs-source-dirs:  tests,src
+  main-is:         ADP/Tests/Suite.hs
+  other-modules:   
+                   ADP.Tests.RGExample,
+                   ADP.Tests.RGExampleConstraint,
+                   ADP.Tests.RGExampleExplicit,
+                   Control.CP.MonadicCpExample,
+                   Control.CP.MonadicCpProblems
+  
+

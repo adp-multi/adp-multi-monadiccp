@@ -4,10 +4,10 @@
 {-# OPTIONS_GHC -fno-warn-type-defaults #-}
 
 {-
-Use monadiccp as a finite-domain constraint solver to construct
+Use monadiccp/OvertonFD as a finite-domain constraint solver to construct
 subwords in a generic way.
 
-TODO It is slow as hell. Maybe it is possible to "compile" the two inequality
+TODO It is really slow. Maybe it is possible to "compile" the two inequality
      systems so that they can later be run faster.
      see http://www.cs.washington.edu/research/constraints/solvers/cp97.html
 -}
@@ -111,8 +111,6 @@ calcSubwords1 infoMap pos@((i,j,_),_) =
                   let rangeLen = fromIntegral (j-i)
                       [minY',minYLeft',minYRight'] = map fromIntegral [minY,minYLeft,minYRight]
                       [maxY',maxYLeft',maxYRight'] = map (maybe rangeLen fromIntegral) [maxY,maxYLeft,maxYRight]
-                      -- TODO instead of using a safe default (rangeLen), it might be better not to
-                      --      include a new inequality at all (how?)
                   [len1,len2,len3] <- colList col 3
                   xsum col @= rangeLen
                   len1 @>= minYLeft' 

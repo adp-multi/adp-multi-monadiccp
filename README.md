@@ -1,4 +1,4 @@
-adp-multi-monadiccp [![Build Status](https://secure.travis-ci.org/neothemachine/adp-multi-monadiccp.png?branch=master)](http://travis-ci.org/neothemachine/adp-multi-monadiccp)
+adp-multi-monadiccp [![Build Status](https://secure.travis-ci.org/adp-multi/adp-multi-monadiccp.png?branch=master)](http://travis-ci.org/adp-multi/adp-multi-monadiccp)
 ===================
 
 This library contains an alternative implementation of the `ADP.Multi.Rewrite.*`
@@ -18,7 +18,7 @@ How to use
 
 1. Check out the git repository
 2. Run `cabal install` inside the checked out folder
-3. Add `adp-multi-monadiccp` as a dependency in your cabal project
+3. Add `adp-multi-monadiccp` as a dependency to your cabal project
 4. Instead of importing `ADP.Multi.Rewriting.All` in your grammar files, 
    import `ADP.Multi.Constraint.All`
    
