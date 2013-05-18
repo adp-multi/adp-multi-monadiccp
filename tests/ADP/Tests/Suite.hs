@@ -2,14 +2,10 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 import Test.Framework 
-import Test.Framework.Providers.HUnit
 import Test.Framework.Providers.QuickCheck2 (testProperty)
 import Data.Monoid (mempty)
 
-import Test.HUnit
 import Test.QuickCheck
-
-import Data.Char (toLower)
 
 import qualified ADP.Tests.RGExample as RG
 import qualified ADP.Tests.RGExampleExplicit as RGE
