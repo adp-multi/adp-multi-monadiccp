@@ -1,10 +1,15 @@
 module ADP.Tests.RGExampleConstraint where
 
 import ADP.Multi.All
-import ADP.Multi.Constraint.All
+import ADP.Tests.CombinatorsTest
 
 import ADP.Tests.RGExample
    
+{- 
+Note that >>>| and >>>|| are only necessary here as both subword construction
+algorithms are used in the same project (for testing purposes).
+See CombinatorsTest.hs for details.
+-}   
 rgknot :: RG_Algebra Char answer -> String -> [answer]
 rgknot algebra inp =
   let  
@@ -12,31 +17,31 @@ rgknot algebra inp =
    
   rewritePair, rewriteKnot :: Dim1
    
-  rewritePair [p1,p2,s1,s2] = [p1,s1,p2,s2]
+  rewritePair [p1,p2,s1,s2] = [p1,s1,p2,s2] 
   rewriteKnot [k11,k12,k21,k22,s1,s2,s3,s4] = [k11,s1,k21,s2,k12,s3,k22,s4]
   
   s = tabulated1 $
       yieldSize1 (0,Nothing) $
-      nil  <<< EPS >>> id1 |||
-      left <<< b ~~~ s >>> id1 |||
-      pair <<< p ~~~ s ~~~ s >>> rewritePair |||
-      knot <<< k ~~~ k ~~~ s ~~~ s ~~~ s ~~~ s >>> rewriteKnot
+      nil  <<< EPS >>>| id1 |||
+      left <<< b ~~~ s >>>| id1 |||
+      pair <<< p ~~~ s ~~~ s >>>| rewritePair |||
+      knot <<< k ~~~ k ~~~ s ~~~ s ~~~ s ~~~ s >>>| rewriteKnot
       ... h
   
   b = tabulated1 $
-      base <<< 'a' >>> id1 |||
-      base <<< 'u' >>> id1 |||
-      base <<< 'c' >>> id1 |||
-      base <<< 'g' >>> id1
+      base <<< 'a' >>>| id1 |||
+      base <<< 'u' >>>| id1 |||
+      base <<< 'c' >>>| id1 |||
+      base <<< 'g' >>>| id1
       ... h
   
   p = tabulated2 $
-      basepair <<< ('a', 'u') >>> id2 |||
-      basepair <<< ('u', 'a') >>> id2 |||
-      basepair <<< ('c', 'g') >>> id2 |||
-      basepair <<< ('g', 'c') >>> id2 |||
-      basepair <<< ('g', 'u') >>> id2 |||
-      basepair <<< ('u', 'g') >>> id2
+      basepair <<< ('a', 'u') >>>|| id2 |||
+      basepair <<< ('u', 'a') >>>|| id2 |||
+      basepair <<< ('c', 'g') >>>|| id2 |||
+      basepair <<< ('g', 'c') >>>|| id2 |||
+      basepair <<< ('g', 'u') >>>|| id2 |||
+      basepair <<< ('u', 'g') >>>|| id2
       ... h
   
   rewriteKnot1 :: Dim2
@@ -44,8 +49,8 @@ rgknot algebra inp =
   
   k = tabulated2 $
       yieldSize2 (1,Nothing) (1,Nothing) $
-      knot1 <<< p ~~~ k >>> rewriteKnot1 |||
-      knot2 <<< p >>> id2
+      knot1 <<< p ~~~ k >>>|| rewriteKnot1 |||
+      knot2 <<< p >>>|| id2
       ... h
       
   z = mk inp

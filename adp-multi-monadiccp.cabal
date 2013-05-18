@@ -56,6 +56,7 @@ test-suite Test
   hs-source-dirs:  tests,src
   main-is:         ADP/Tests/Suite.hs
   other-modules:   
+                   ADP.Tests.CombinatorsTest,
                    ADP.Tests.RGExample,
                    ADP.Tests.RGExampleConstraint,
                    ADP.Tests.RGExampleExplicit,

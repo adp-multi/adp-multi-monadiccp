@@ -16,12 +16,11 @@ main = defaultMainWithOpts
             [
                     testProperty "subword consistency" prop_constraint
             ]
-       mempty {
+       mempty { 
             ropt_test_options = Just mempty {
                 topt_maximum_generated_tests = Just 20
             }
        }
-
 
 -- checks if both subword construction algorithms produce the same subwords
 -- by testing whether a grammar produces the same terms in both cases
