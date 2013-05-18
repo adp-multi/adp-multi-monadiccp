@@ -26,3 +26,16 @@ data Start = Nil
 
 enum :: RG_Algebra Char Start
 enum = (\_->Nil,Left',Pair,Knot,Knot1,Knot2,BasePair,Base,id)
+
+maxBasepairs :: RG_Algebra Char Int
+maxBasepairs = (nil,left,pair,knot,knot1,knot2,basepair,base,h) where
+   nil _            = 0
+   left a b         = a + b
+   pair a b c       = a + b + c
+   knot a b c d e f = a + b + c + d + e + f
+   knot1 a b        = a + b
+   knot2 a          = a
+   basepair _       = 1
+   base _           = 0
+   h []             = []
+   h xs             = [maximum xs]
