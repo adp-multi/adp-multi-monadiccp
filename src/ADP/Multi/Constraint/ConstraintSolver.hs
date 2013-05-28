@@ -99,7 +99,6 @@ calcSubwords2 infoMap (left@((i,j,r),a1Idx),right@((_,_,r'),a2Idx))
                 , (k',l') <- calcSubwords1 infoMap right
                 ]
 
--- assumes that other component is in a different part
 calcSubwords1 :: YieldSizeMap -> (RangeDesc,Int) -> [Subword1]
 calcSubwords1 _ b | trace ("calcSubwordsIndependent " ++ show b) False = undefined
 calcSubwords1 infoMap pos@((i,j,_),_) =
