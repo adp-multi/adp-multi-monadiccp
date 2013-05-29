@@ -64,7 +64,7 @@ constructSubwords2 f infos [i,j,k,l] =
 
 constructSubwordsRec :: YieldSizeMap -> [(Int,ParserInfo)] -> [RangeDesc] -> [SubwordTree]
 constructSubwordsRec a b c | trace ("constructSubwordsRec " ++ show a ++ " " ++ show b ++ " " ++ show c) False = undefined
-constructSubwordsRec _ [] [] = []
+constructSubwordsRec _ [] _ = []
 constructSubwordsRec yieldSizeMap ((current,ParserInfo1 {}):rest) rangeDescs =
         let symbolLoc = findSymbol1 current rangeDescs
             subwords = calcSubwords1 yieldSizeMap symbolLoc
@@ -85,7 +85,6 @@ constructSubwordsRec yieldSizeMap ((current,ParserInfo2 {}):rest) rangeDescs =
              let newDescs = constructNewRangeDescs2 rangeDescs symbolLocs (i,j,k,l),
              let restTrees = constructSubwordsRec yieldSizeMap rest newDescs
            ]
-constructSubwordsRec _ [] r@(_:_) = error ("programming error " ++ show r)
 
 
 calcSubwords2 :: YieldSizeMap -> (SymbolPos,SymbolPos) -> [Subword2]
