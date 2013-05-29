@@ -53,17 +53,17 @@ constructSubwords2 f infos [i,j,k,l] =
             (left,right) = f symbolIDs
             parserCount = length infos
             remainingParsers = [parserCount,parserCount-1..1] `zip` infos
-            rangeDesc = [(i,j,left),(k,l,right)]
-            rangeDescFiltered = filterEmptyRanges rangeDesc
+            rangeDescs = [(i,j,left),(k,l,right)]
         in trace ("f " ++ show symbolIDs ++ " = (" ++ show left ++ "," ++ show right ++ ")") $
-           assert (length left + length right == Map.size yieldSizeMap && all (`elem` (left ++ right)) symbolIDs) $
-           if any (\(m,n,d) -> null d && m /= n) rangeDesc then []
-           else constructSubwordsRec yieldSizeMap remainingParsers rangeDescFiltered
+           assert (length left + length right == Map.size yieldSizeMap && 
+                   all (`elem` (left ++ right)) symbolIDs &&
+                   not (null left) && not (null right)) $
+           constructSubwordsRec yieldSizeMap remainingParsers rangeDescs
 
 
 
 constructSubwordsRec :: YieldSizeMap -> [(Int,ParserInfo)] -> [RangeDesc] -> [SubwordTree]
-constructSubwordsRec a b c | trace ("constructRangesRec " ++ show a ++ " " ++ show b ++ " " ++ show c) False = undefined
+constructSubwordsRec a b c | trace ("constructSubwordsRec " ++ show a ++ " " ++ show b ++ " " ++ show c) False = undefined
 constructSubwordsRec _ [] [] = []
 constructSubwordsRec yieldSizeMap ((current,ParserInfo1 {}):rest) rangeDescs =
         let symbolLoc = findSymbol1 current rangeDescs
@@ -88,21 +88,21 @@ constructSubwordsRec yieldSizeMap ((current,ParserInfo2 {}):rest) rangeDescs =
 constructSubwordsRec _ [] r@(_:_) = error ("programming error " ++ show r)
 
 
-calcSubwords2 :: YieldSizeMap -> ((RangeDesc,Int),(RangeDesc,Int)) -> [Subword2]
+calcSubwords2 :: YieldSizeMap -> (SymbolPos,SymbolPos) -> [Subword2]
 calcSubwords2 a b | trace ("calcSubwords " ++ show a ++ " " ++ show b) False = undefined
-calcSubwords2 infoMap (left@((i,j,r),a1Idx),right@((_,_,r'),a2Idx))
-  | r == r' = calcSubwords2Dependent infoMap (i,j,r) a1Idx a2Idx
+calcSubwords2 yieldSizeMap (left@((i,j,r),sym1Idx),right@((_,_,r'),sym2Idx))
+  | r == r' = calcSubwords2Dependent yieldSizeMap (i,j,r) sym1Idx sym2Idx
   | otherwise = [ (i',j',k',l') |
-                  (i',j') <- calcSubwords1 infoMap left
-                , (k',l') <- calcSubwords1 infoMap right
+                  (i',j') <- calcSubwords1 yieldSizeMap left
+                , (k',l') <- calcSubwords1 yieldSizeMap right
                 ]
 
-calcSubwords1 :: YieldSizeMap -> (RangeDesc,Int) -> [Subword1]
+calcSubwords1 :: YieldSizeMap -> SymbolPos -> [Subword1]
 calcSubwords1 _ b | trace ("calcSubwordsIndependent " ++ show b) False = undefined
-calcSubwords1 infoMap pos@((i,j,_),_) =
-        let (minY,maxY) = yieldSizeOf infoMap pos
-            (minYLeft,maxYLeft) = combinedYieldSizeLeftOf infoMap pos
-            (minYRight,maxYRight) = combinedYieldSizeRightOf infoMap pos
+calcSubwords1 yieldSizeMap pos@((i,j,_),_) =
+        let (minY,maxY) = yieldSizeOf yieldSizeMap pos
+            (minYLeft,maxYLeft) = combinedYieldSizeLeftOf yieldSizeMap pos
+            (minYRight,maxYRight) = combinedYieldSizeRightOf yieldSizeMap pos
             model :: FDModel
             model = exists $ \col -> do
                   let rangeLen = fromIntegral (j-i)
@@ -125,22 +125,22 @@ calcSubwords1 infoMap pos@((i,j,_),_) =
 
 calcSubwords2Dependent :: YieldSizeMap -> RangeDesc -> Int -> Int -> [Subword2]
 calcSubwords2Dependent _ b c d | trace ("calcSubwordsDependent " ++ show b ++ " " ++ show c ++ " " ++ show d) False = undefined
-calcSubwords2Dependent infoMap desc a1Idx a2Idx =
-        let a1Idx' = if a1Idx < a2Idx then a1Idx else a2Idx
-            a2Idx' = if a1Idx < a2Idx then a2Idx else a1Idx
-            subs = doCalcSubwords2Dependent infoMap desc a1Idx' a2Idx'
-        in if a1Idx < a2Idx then subs
+calcSubwords2Dependent yieldSizeMap desc sym1Idx sym2Idx =
+        let sym1Idx' = if sym1Idx < sym2Idx then sym1Idx else sym2Idx
+            sym2Idx' = if sym1Idx < sym2Idx then sym2Idx else sym1Idx
+            subs = doCalcSubwords2Dependent yieldSizeMap desc sym1Idx' sym2Idx'
+        in if sym1Idx < sym2Idx then subs
            else [ (k,l,m,n) | (m,n,k,l) <- subs ]
 
 doCalcSubwords2Dependent :: YieldSizeMap -> RangeDesc -> Int -> Int -> [Subword2]
-doCalcSubwords2Dependent infoMap desc@(i,j,_) a1Idx a2Idx =
-        let (minY1,maxY1) = yieldSizeOf infoMap (desc,a1Idx)
-            (minY2,maxY2) = yieldSizeOf infoMap (desc,a2Idx)
-            (minYLeft1,maxYLeft1) = combinedYieldSizeLeftOf infoMap (desc,a1Idx)
-            (minYRight1,maxYRight1) = combinedYieldSizeRightOf infoMap (desc,a1Idx)
-            (minYRight2,maxYRight2) = combinedYieldSizeRightOf infoMap (desc,a2Idx)
+doCalcSubwords2Dependent yieldSizeMap desc@(i,j,_) sym1Idx sym2Idx =
+        let (minY1,maxY1) = yieldSizeOf yieldSizeMap (desc,sym1Idx)
+            (minY2,maxY2) = yieldSizeOf yieldSizeMap (desc,sym2Idx)
+            (minYLeft1,maxYLeft1) = combinedYieldSizeLeftOf yieldSizeMap (desc,sym1Idx)
+            (minYRight1,maxYRight1) = combinedYieldSizeRightOf yieldSizeMap (desc,sym1Idx)
+            (minYRight2,maxYRight2) = combinedYieldSizeRightOf yieldSizeMap (desc,sym2Idx)
             minYBetween = minYRight1 - minYRight2 - minY2
-            maxYBetween | a1Idx + 1 == a2Idx = Just 0
+            maxYBetween | sym1Idx + 1 == sym2Idx = Just 0
                         | isNothing maxYRight1 = Nothing
                         | otherwise = Just $ fromJust maxYRight1 - fromJust maxYRight2 - fromJust maxY2
             model :: FDModel
